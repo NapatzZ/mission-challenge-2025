@@ -9,8 +9,8 @@ void PID_wall(int Speed, float Kp, float Ki, float Kd, int mode) {
     if (analogRead(1) > 500 && analogRead(0) > 1000) {
       Motor(60, 60, -60, -60);
     }
-      else if (getDistanceCM(analogRead(0)) > 45 && analogRead(0) > 1000) {
-        Motor(-10, -10, 20, 20);
+      else if (getDistanceCM(analogRead(0)) > 30) {
+        Motor(25, 25, 55, 55);
       }
       else {
         float setpoint = mode == 0 ? analogRead(0) : analogRead(2);
