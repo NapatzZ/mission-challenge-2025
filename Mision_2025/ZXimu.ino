@@ -1,33 +1,18 @@
 /*
-  ไฟล์นี้ประกอบด้วยฟังก์ชันสำหรับการใช้งาน ZX-IMU 
-  รวมถึงการอ่านค่า Yaw, การรักษา heading, และ PID control
-  สำหรับหุ่นยนต์ล้อ Mecanum wheel
+  ZX-IMU control functions including Yaw reading,
+  heading maintenance, and PID control for Mecanum wheel robot
 */
 
-// --- ตัวแปรสำหรับ IMU ---
-uint8_t rxBuf[8], rxCnt = 0;
-float pvYaw = 0.0f;        // ค่ามุมปัจจุบัน (องศา)
-float initialYaw = 0.0f;   // ค่ามุมเริ่มต้น (องศา)
-float targetYaw = 0.0f;    // ค่ามุมเป้าหมาย (องศา)
+// Note: All global variables moved to Mision_2025.ino
 
-// --- ตัวแปรสำหรับ PID Control ---
-float head_Kp = 1.0f;  // Proportional gain - ปรับได้
-float head_Ki = 0.0f;  // Integral gain - ปรับได้  
-float head_Kd = 0.1f;  // Derivative gain - ปรับได้
-
-float head_error = 0.0f, head_pError = 0.0f;
-float head_output = 0.0f, head_d = 0.0f, head_i = 0.0f;
-
-// --- ฟังก์ชันสำหรับรีเซ็ตและปรับเทียบ IMU ---
+// --- IMU Reset and Calibration Functions ---
 
 /**
- * @brief ตั้งค่าเริ่มต้นและรีเซ็ต ZX-IMU
+ * @brief Initialize and reset ZX-IMU
  */
 void setupIMU() {
-  // ลอง Baud rate ต่างๆ
-  Serial1.begin(115200);  // ลองอันนี้ก่อน
-  // Serial1.begin(9600);   // หากไม่ได้ลองอันนี้
-  // Serial1.begin(38400);  // หรืออันนี้
+  // ใช้ Baud rate จาก configuration
+  Serial1.begin(IMU_BAUD_RATE);
   delay(100);
   
   Serial.println("IMU Initializing...");

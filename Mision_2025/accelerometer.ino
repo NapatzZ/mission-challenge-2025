@@ -1,16 +1,16 @@
 /*
-  ไฟล์นี้ประกอบด้วยฟังก์ชันสำหรับอ่านค่าจากเซ็นเซอร์ความเร่ง MC34X9
-  และคำนวณค่าความเอียง (pitch และ roll)
+  Accelerometer functions for reading MC34X9 sensor
+  and calculating tilt angles (pitch and roll)
 */
 
 
 
-// --- ฟังก์ชัน Helper สำหรับการสื่อสาร I2C ---
+// --- I2C Communication Helper Functions ---
 
 /**
- * @brief เขียนข้อมูลลงในเรจิสเตอร์ของเซ็นเซอร์
- * @param reg ที่อยู่ของเรจิสเตอร์
- * @param value ค่าที่ต้องการเขียน
+ * @brief Write data to sensor register
+ * @param reg Register address
+ * @param value Value to write
  */
 void writeRegister(uint8_t reg, uint8_t value) {
   Wire.beginTransmission(I2C_ADDRESS);
@@ -20,9 +20,9 @@ void writeRegister(uint8_t reg, uint8_t value) {
 }
 
 /**
- * @brief อ่านค่าดิบ 16-bit จากเรจิสเตอร์ของเซ็นเซอร์
- * @param reg ที่อยู่ของเรจิสเตอร์
- * @return ค่าดิบ 16-bit
+ * @brief Read 16-bit raw data from sensor register
+ * @param reg Register address
+ * @return 16-bit raw value
  */
 int16_t readAccel(uint8_t reg) {
   Wire.beginTransmission(I2C_ADDRESS);
