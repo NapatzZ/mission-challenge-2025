@@ -77,8 +77,11 @@ void setup() {
   setup_accelerometer();
   beep(1000);
   setupIMU();
-
-  testDirectionalMovement();
+  motor(50,50,-50,50);
+  sleep(10000);
+  AO();
+  sleep(300);
+  moveToDirection(0,30,10000);
 
   // esc.writeMicroseconds(2000);
   
