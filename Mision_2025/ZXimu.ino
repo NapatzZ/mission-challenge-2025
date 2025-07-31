@@ -11,21 +11,21 @@
  * @brief Initialize and reset ZX-IMU
  */
 void setupIMU() {
-  // ใช้ Baud rate จาก configuration
+  // Use baud rate from configuration
   Serial1.begin(IMU_BAUD_RATE);
   delay(100);
   
   Serial.println("IMU Initializing...");
   
-  // ส่งคำสั่งรีเซ็ตผ่าน UART
+  // Send reset commands via UART
   Serial1.write(0xA5); Serial1.write(0x54); delay(100);
   Serial1.write(0xA5); Serial1.write(0x55); delay(100);
   Serial1.write(0xA5); Serial1.write(0x52); delay(100);
   
-  // รอให้ IMU รีเซ็ต
+  // Wait for IMU to reset
   delay(500);
   
-  // อ่านค่าเริ่มต้นและตั้งเป็น 0
+  // Read initial values and set to 0
   for(int i = 0; i < 10; i++) {
     readIMUHeading();
     delay(10);
@@ -33,7 +33,7 @@ void setupIMU() {
   initialYaw = pvYaw;
   targetYaw = 0.0f;
   
-  // รีเซ็ต PID variables
+  // Reset PID variables
   head_error = 0.0f;
   head_pError = 0.0f;
   head_i = 0.0f;
@@ -43,13 +43,13 @@ void setupIMU() {
 }
 
 /**
- * @brief ตั้งค่ามุมปัจจุบันเป็นมุมเริ่มต้น (0 องศา)
+ * @brief Set the current angle as the initial heading (0 degrees)
  */
 void setInitialHeading() {
   initialYaw = pvYaw;
   targetYaw = 0.0f;
   
-  // รีเซ็ต PID variables
+  // Reset PID variables
   head_error = 0.0f;
   head_pError = 0.0f;
   head_i = 0.0f;
@@ -58,47 +58,47 @@ void setInitialHeading() {
   Serial.println("Current heading set as initial (0 degrees)!");
 }
 
-// --- ฟังก์ชันสำหรับอ่านค่าจาก IMU ---
+// --- IMU Reading Functions ---
 
 /**
- * @brief อ่านค่ามุม Yaw จาก ZX-IMU ผ่าน UART
- * @return true หากอ่านข้อมูลสำเร็จ, false หากไม่สำเร็จ
+ * @brief Read Yaw angle from ZX-IMU via UART
+ * @return true if successful, false if failed
  */
 bool readIMUHeading() {
   while (Serial1.available()) {
     uint8_t data = Serial1.read();
     
-    // หา header 0xAA
+    // Look for header 0xAA
     if (rxCnt == 0) {
       if (data == 0xAA) {
         rxBuf[rxCnt++] = data;
       }
-      // ถ้าไม่ใช่ 0xAA ให้ข้าม
+      // Skip if not 0xAA
       continue;
     }
     
-    // เก็บข้อมูลต่อไป
+    // Store subsequent bytes
     rxBuf[rxCnt++] = data;
     
-    // เมื่อได้รับครบ 8 ไบต์
+    // Once 8 bytes received
     if (rxCnt == 8) {
       rxCnt = 0;
       
-      // ตรวจสอบ footer 0x55
+      // Check footer 0x55
       if (rxBuf[7] == 0x55) {
-        // คำนวณค่ามุม Yaw - ใช้ byte 1 และ 2
+        // Calculate Yaw from byte 1 and 2
         int16_t rawYaw = (rxBuf[1] << 8) | rxBuf[2];
         pvYaw = rawYaw / 100.0f;
         return true;
       }
-      // ถ้า footer ผิด ให้เริ่มใหม่
+      // If footer incorrect, restart
     }
   }
   return false;
 }
 
 /**
- * @brief ฟังก์ชันอ่าน IMU แบบ non-blocking
+ * @brief Non-blocking version of IMU reading function
  */
 bool readIMUHeadingSimple() {
   static uint8_t buffer[8];
@@ -109,23 +109,23 @@ bool readIMUHeadingSimple() {
     uint8_t data = Serial1.read();
     
     if (!foundHeader) {
-      // ค้นหา header
+      // Look for header
       if (data == 0xAA) {
         buffer[0] = data;
         bufIndex = 1;
         foundHeader = true;
       }
     } else {
-      // เก็บข้อมูลต่อไป
+      // Store next data
       buffer[bufIndex++] = data;
       
       if (bufIndex == 8) {
         foundHeader = false;
         bufIndex = 0;
         
-        // ตรวจสอบ footer
+        // Check footer
         if (buffer[7] == 0x55) {
-          // คำนวณค่ามุม Yaw
+          // Calculate Yaw
           int16_t rawYaw = (buffer[1] << 8) | buffer[2];
           pvYaw = rawYaw / 100.0f;
           return true;
@@ -137,7 +137,7 @@ bool readIMUHeadingSimple() {
 }
 
 /**
- * @brief ฟังก์ชันทดสอบการรับข้อมูล Raw จาก Serial1
+ * @brief Test function to display raw Serial1 data
  */
 void testSerialData() {
   Serial.println("=== Testing Serial1 Raw Data ===");
@@ -166,13 +166,13 @@ void testSerialData() {
 }
 
 /**
- * @brief ได้ค่ามุม Yaw ที่ปรับตาม initial heading แล้ว
- * @return ค่ามุม Yaw ที่ปรับแล้ว (-180 ถึง 180 องศา)
+ * @brief Get Yaw angle relative to the initial heading
+ * @return Relative Yaw (-180 to 180 degrees)
  */
 float getRelativeHeading() {
   float relativeYaw = pvYaw - initialYaw;
   
-  // จำกัดค่าให้อยู่ในช่วง -180 ถึง 180
+  // Constrain value between -180 and 180
   while (relativeYaw > 180.0f) relativeYaw -= 360.0f;
   while (relativeYaw < -180.0f) relativeYaw += 360.0f;
   
@@ -180,20 +180,20 @@ float getRelativeHeading() {
 }
 
 /**
- * @brief รีเซ็ตและกำหนด initial heading ใหม่ทันที
+ * @brief Reset and assign current heading as new initial heading
  */
 void resetCurrentHeading() {
-  // อ่านค่าปัจจุบันหลายรอบ
+  // Read current value multiple times
   for(int i = 0; i < 5; i++) {
     readIMUHeading();
     delay(10);
   }
   
-  // กำหนดค่าปัจจุบันเป็น initial heading
+  // Set current as initial heading
   initialYaw = pvYaw;
   targetYaw = 0.0f;
   
-  // รีเซ็ต PID variables
+  // Reset PID variables
   head_error = 0.0f;
   head_pError = 0.0f;
   head_i = 0.0f;
@@ -205,27 +205,27 @@ void resetCurrentHeading() {
 }
 
 /**
- * @brief แปลงมุมจากเรเดียนเป็นองศา
- * @param rad มุมในหน่วยเรเดียน
- * @return มุมในหน่วยองศา
+ * @brief Convert radians to degrees
+ * @param rad Angle in radians
+ * @return Angle in degrees
  */
 float radToDeg(float rad) {
   return rad * 180.0f / PI;
 }
 
 /**
- * @brief แปลงมุมจากองศาเป็นเรเดียน  
- * @param deg มุมในหน่วยองศา
- * @return มุมในหน่วยเรเดียน
+ * @brief Convert degrees to radians  
+ * @param deg Angle in degrees
+ * @return Angle in radians
  */
 float degToRad(float deg) {
   return deg * PI / 180.0f;
 }
 
-// --- ฟังก์ชันสำหรับการควบคุม Heading ---
+// --- Heading Control Functions ---
 
 /**
- * @brief ตั้งค่าพารามิเตอร์ PID สำหรับควบคุม heading
+ * @brief Set PID parameters for heading control
  * @param kp Proportional gain
  * @param ki Integral gain
  * @param kd Derivative gain
@@ -239,60 +239,59 @@ void setPIDGains(float kp, float ki, float kd) {
 }
 
 /**
- * @brief รักษาทิศทางขณะเคลื่อนที่ด้วย PID control
- * @param targetTheta มุมเป้าหมาย (เรเดียน)
- * @param speed ความเร็วการเคลื่อนที่ (0-100)
+ * @brief Maintain heading while moving using PID control
+ * @param targetTheta Target angle (radians)
+ * @param speed Movement speed (0-100)
  */
 void maintainHeading(float targetTheta, int speed) {
-  // แปลงเป้าหมายจากเรเดียนเป็นองศา
+  // Convert target from radians to degrees
   targetYaw = radToDeg(targetTheta);
   
-  // คำนวณ error จากค่าปัจจุบันที่ปรับแล้ว
+  // Calculate error from current adjusted yaw
   float currentYaw = getRelativeHeading();
   head_error = targetYaw - currentYaw;
   
-  // จำกัด error ให้อยู่ในช่วง -180 ถึง 180
+  // Constrain error between -180 and 180
   while (head_error > 180.0f) head_error -= 360.0f;
   while (head_error < -180.0f) head_error += 360.0f;
   
   // Integral term
   head_i += head_error;
-  head_i = constrain(head_i, -180, 180);  // จำกัดค่า integral
+  head_i = constrain(head_i, -180, 180);  // Limit integral term
   
   // Derivative term
   head_d = head_error - head_pError;
   
-  // คำนวณ output PID
+  // Calculate PID output
   head_output = (head_error * head_Kp) + 
                 (head_i * head_Ki) + 
                 (head_d * head_Kd);
   
-  // จำกัด output
+  // Limit output
   head_output = constrain(head_output, -50, 50);
   
-  // คำนวณความเร็วมอเตอร์แต่ละตัว (Mecanum wheel)
-  // สำหรับการรักษา heading โดยหมุนตัวหุ่นยนต์
+  // Calculate motor speed for each Mecanum wheel to maintain heading
   int rotationSpeed = (int)head_output;
   
-  // ขับมอเตอร์ Mecanum wheel สำหรับการหมุน
-  // ล้อซ้าย: หมุนไปข้างหน้า, ล้อขวา: หมุนย้อนกลับ
+  // Drive Mecanum motors to rotate
+  // Left wheels: forward, Right wheels: reverse
   Motor(-rotationSpeed, -rotationSpeed, rotationSpeed, rotationSpeed);
   
-  // บันทึก error สำหรับรอบถัดไป
+  // Save error for next iteration
   head_pError = head_error;
 }
 
 /**
- * @brief รักษา heading ปัจจุบันขณะหยุดนิ่ง
+ * @brief Maintain current heading while stationary
  */
 void holdCurrentHeading() {
   maintainHeading(degToRad(targetYaw), 0);
 }
 
-// --- ฟังก์ชันสำหรับการทดสอบ ---
+// --- Testing Functions ---
 
 /**
- * @brief แสดงข้อมูล IMU ผ่าง Serial Monitor
+ * @brief Print IMU data to Serial Monitor
  */
 void printIMUData() {
   Serial.print("Raw Yaw: ");

@@ -27,9 +27,3 @@ void PID_wall(int Speed, float Kp, float Ki, float Kd, int mode) {
     }
   }
 
-  void M_motor(int sp) {
-    for (int i = 10; i <= sp; i += 5) {
-      Motor(i, i, i, i);  // เพิ่มค่าทีละ 10
-      delay(500);         // เพิ่มหน่วงเวลาให้มอเตอร์มีเวลาหมุน (ถ้าจำเป็น)
-    }
-  }

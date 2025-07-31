@@ -3,8 +3,6 @@
   Provides omnidirectional movement with heading control using ZX-IMU and accelerometer
 */
 
-
-
 // --- Main Movement Functions ---
 
 /**
@@ -74,9 +72,7 @@ void moveInDirection(float direction, int speed, float target_heading) {
   Motor(motor1_speed, motor2_speed, motor3_speed, motor4_speed);
 }
 
-
-
-// --- Popular Direction Functions ---
+// --- Common Direction Functions ---
 
 /**
  * @brief Move forward (0°)
@@ -87,62 +83,62 @@ void moveForward(int speed) {
 }
 
 /**
- * @brief เคลื่อนที่ไปข้างหลัง (180°)
- * @param speed ความเร็ว (0-100)
+ * @brief Move backward (180°)
+ * @param speed Speed (0-100)
  */
 void moveBackward(int speed) {
-  moveInDirection(SOUTH, speed, 0.0f); // รักษาหัวหุ่นยนต์ที่ 0°
+  moveInDirection(SOUTH, speed, 0.0f); // Maintain robot heading at 0°
 }
 
 /**
- * @brief เคลื่อนที่ไปซ้าย (90°)
- * @param speed ความเร็ว (0-100)
+ * @brief Move left (90°)
+ * @param speed Speed (0-100)
  */
 void moveLeft(int speed) {
-  moveInDirection(EAST, speed, 0.0f); // รักษาหัวหุ่นยนต์ที่ 0°
+  moveInDirection(EAST, speed, 0.0f); // Maintain robot heading at 0°
 }
 
 /**
- * @brief เคลื่อนที่ไปขวา (-90°)
- * @param speed ความเร็ว (0-100)
+ * @brief Move right (-90°)
+ * @param speed Speed (0-100)
  */
 void moveRight(int speed) {
-  moveInDirection(WEST, speed, 0.0f); // รักษาหัวหุ่นยนต์ที่ 0°
+  moveInDirection(WEST, speed, 0.0f); // Maintain robot heading at 0°
 }
 
 /**
- * @brief เคลื่อนที่ไปมุม 45° (ข้างหน้าขวา)
- * @param speed ความเร็ว (0-100)
+ * @brief Move at 45° angle (forward-right)
+ * @param speed Speed (0-100)
  */
 void move45Degrees(int speed) {
-  moveInDirection(NORTHWEST, speed, 0.0f); // รักษาหัวหุ่นยนต์ที่ 0°
+  moveInDirection(NORTHWEST, speed, 0.0f); // Maintain robot heading at 0°
 }
 
 /**
- * @brief เคลื่อนที่ไปมุม 135° (ข้างหลังซ้าย)
- * @param speed ความเร็ว (0-100)
+ * @brief Move at 135° angle (backward-left)
+ * @param speed Speed (0-100)
  */
 void move135Degrees(int speed) {
-  moveInDirection(SOUTHEAST, speed, 0.0f); // รักษาหัวหุ่นยนต์ที่ 0°
+  moveInDirection(SOUTHEAST, speed, 0.0f); // Maintain robot heading at 0°
 }
 
-// --- ฟังก์ชันการหมุน ---
+// --- Rotation Functions ---
 
 /**
- * @brief หมุนหุ่นยนต์ไปมุมที่กำหนด
- * @param target_angle มุมเป้าหมายในหน่วยเรเดียน
+ * @brief Rotate robot to a specific angle
+ * @param target_angle Target angle in radians
  */
 void turnToAngle(float target_angle) {
-  maintain_heading_enabled = false; // ปิดการรักษา heading ชั่วคราว
+  maintain_heading_enabled = false; // Temporarily disable heading hold
   
-  // ใช้ maintainHeading จาก ZXimu.ino
+  // Use maintainHeading from ZXimu.ino
   maintainHeading(target_angle, 0);
   
-  maintain_heading_enabled = true; // เปิดกลับ
+  maintain_heading_enabled = true; // Re-enable
 }
 
 /**
- * @brief หมุนหุ่นยนต์ไปมุมยอดฮิต
+ * @brief Rotate robot to popular angles
  */
 void turnTo0Degrees() { turnToAngle(0.0f); }           // 0°
 void turnTo45Degrees() { turnToAngle(PI/4.0f); }       // 45°
@@ -150,44 +146,44 @@ void turnTo90Degrees() { turnToAngle(PI/2.0f); }       // 90°
 void turnTo135Degrees() { turnToAngle(3.0f*PI/4.0f); } // 135°
 void turnTo180Degrees() { turnToAngle(PI); }           // 180°
 
-// --- ฟังก์ชันควบคุมการตั้งค่า ---
+// --- Control Settings Functions ---
 
 /**
- * @brief เปิด/ปิดการรักษา heading
- * @param enable true=เปิด, false=ปิด
+ * @brief Enable/disable heading hold
+ * @param enable true=enable, false=disable
  */
 void enableHeadingControl(bool enable) {
   maintain_heading_enabled = enable;
 }
 
 /**
- * @brief ตั้งค่าความเร็วเริ่มต้น
- * @param speed ความเร็ว (0-100)
+ * @brief Set default movement speed
+ * @param speed Speed (0-100)
  */
 void setDefaultSpeed(int speed) {
   movement_speed = constrain(speed, 0, 100);
 }
 
 /**
- * @brief หยุดการเคลื่อนที่ทั้งหมด
+ * @brief Stop all movement
  */
 void stopMovement() {
   Motor_Stop();
 }
 
-// --- ฟังก์ชันทดสอบ ---
+// --- Test Functions ---
 
 /**
- * @brief ทดสอบการเคลื่อนที่ในทิศทางต่างๆ
+ * @brief Test movement in various directions
  */
 void testDirectionalMovement() {
   Serial.println("=== Testing Directional Movement ===");
   
-  // รีเซ็ต heading
+  // Reset heading
   resetCurrentHeading();
   delay(1000);
   
-  // ทดสอบทิศทางต่างๆ แบบต่อเนื่อง
+  // Test each direction sequentially
   Serial.println("Moving Forward (0°)");
   unsigned long startTime = millis();
   while (millis() - startTime < 2000) {
@@ -228,16 +224,16 @@ void testDirectionalMovement() {
     delay(50);
   }
   
-  // หยุด
+  // Stop
   stopMovement();
   Serial.println("=== Test Complete ===");
 }
 
 /**
- * @brief ทดสอบการเคลื่อนที่ทิศทางเดียวแบบต่อเนื่อง
- * @param direction ทิศทาง (เรเดียน)
- * @param speed ความเร็ว
- * @param duration ระยะเวลา (มิลลิวินาที)
+ * @brief Test movement in a specific direction for a duration
+ * @param direction Direction in radians
+ * @param speed Speed
+ * @param duration Duration in milliseconds
  */
 void moveToDirection(float direction, int speed, unsigned long duration) {
   Serial.print("Testing direction: ");
@@ -246,7 +242,7 @@ void moveToDirection(float direction, int speed, unsigned long duration) {
   
   unsigned long startTime = millis();
   while (millis() - startTime < duration) {
-    moveInDirection(direction, speed, 0.0f); // รักษา heading ที่ 0°
+    moveInDirection(direction, speed, 0.0f); // Maintain heading at 0°
     printIMUData();
     delay(50);
   }
@@ -256,7 +252,7 @@ void moveToDirection(float direction, int speed, unsigned long duration) {
 }
 
 /**
- * @brief แสดงข้อมูลการเคลื่อนที่ปัจจุบัน
+ * @brief Print current movement status
  */
 void printMovementStatus() {
   Serial.print("Direction: ");
@@ -270,7 +266,7 @@ void printMovementStatus() {
   Serial.print("Heading Control: ");
   Serial.println(maintain_heading_enabled ? "ON" : "OFF");
   
-  // แสดงข้อมูล IMU และ accelerometer
+  // Show IMU and accelerometer data
   if (readIMUHeadingSimple()) {
     printIMUData();
   }

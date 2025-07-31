@@ -3,12 +3,10 @@
   and calculating tilt angles (pitch and roll)
 */
 
-
-
 // --- I2C Communication Helper Functions ---
 
 /**
- * @brief Write data to sensor register
+ * @brief Write data to a sensor register
  * @param reg Register address
  * @param value Value to write
  */
@@ -34,22 +32,22 @@ int16_t readAccel(uint8_t reg) {
   return (int16_t)(lsb | (msb << 8));
 }
 
-// --- ฟังก์ชันหลักสำหรับเซ็นเซอร์ ---
+// --- Main Functions for the Sensor ---
 
 /**
- * @brief ตั้งค่าเริ่มต้นให้กับเซ็นเซอร์ MC34X9
- *        ต้องเรียกใช้ในฟังก์ชัน setup() ของโปรแกรมหลัก
+ * @brief Initialize the MC34X9 sensor
+ *        Must be called in the setup() function of the main program
  */
 void setup_accelerometer() {
   Wire.begin();
-  writeRegister(0x07, 0x01);  // ตั้งค่าเป็น Active mode
-  writeRegister(0x20, 0x01);  // ตั้งค่าช่วงการวัดเป็น ±2g, ความละเอียด 16-bit
+  writeRegister(0x07, 0x01);  // Set to Active mode
+  writeRegister(0x20, 0x01);  // Set measurement range to ±2g, 16-bit resolution
 }
 
 /**
- * @brief อ่านค่าความเร่งจากเซ็นเซอร์ทั้ง 3 แกน
- *        และแปลงเป็นหน่วย g (แรงโน้มถ่วง)
- *        ผลลัพธ์จะถูกเก็บในตัวแปร global: accelX_g, accelY_g, accelZ_g
+ * @brief Read acceleration from all 3 axes of the sensor
+ *        and convert to g units (gravity)
+ *        The results will be stored in global variables: accelX_g, accelY_g, accelZ_g
  */
 void read_acceleration() {
   accelX_g = readAccel(REG_OUT_X_LSB) * LSB_TO_G;
@@ -58,24 +56,23 @@ void read_acceleration() {
 }
 
 /**
- * @brief คำนวณค่าความเอียง (Pitch และ Roll) จากข้อมูลความเร่ง
- *        ต้องเรียกใช้ read_acceleration() ก่อน
- *        ผลลัพธ์ (หน่วยองศา) จะถูกเก็บในตัวแปร global: pitch_deg, roll_deg
+ * @brief Calculate tilt angles (Pitch and Roll) from acceleration data
+ *        read_acceleration() must be called beforehand
+ *        Results (in degrees) are stored in global variables: pitch_deg, roll_deg
  */
 void calculate_tilt() {
-  // คำนวณ Roll (การเอียงรอบแกน X)
+  // Calculate Roll (tilt around X-axis)
   roll_deg = atan2(accelY_g, accelZ_g) * 180.0 / M_PI;
 
-  // คำนวณ Pitch (การเอียงรอบแกน Y)
+  // Calculate Pitch (tilt around Y-axis)
   pitch_deg = atan2(-accelX_g, sqrt(accelY_g * accelY_g + accelZ_g * accelZ_g)) * 180.0 / M_PI;
 }
 
 /**
- * @brief ฟังก์ชันรวมสำหรับวัดค่าความเร่งและความเอียง
- *        เรียกใช้ read_acceleration() และ calculate_tilt() ตามลำดับ
+ * @brief Combined function for measuring acceleration and tilt
+ *        Calls read_acceleration() and calculate_tilt() in sequence
  */
 void measure_tilt_and_accel() {
     read_acceleration();
     calculate_tilt();
 }
-
