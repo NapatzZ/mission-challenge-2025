@@ -29,35 +29,45 @@ void setup() {
   SPI.begin();  // PA5=SCK, PA6=MISO, PA7=MOSI (STM32 SPI1)
   waitAnykey_bmp();
   setup_accelerometer();
-  
+  beep(1000);
+  setupIMU();
+
   // esc.writeMicroseconds(2000);
   
 }
 
 
 void loop() {
-  measure_tilt_and_accel();
-  Serial.print("Pitch: ");
-  Serial.print(pitch_deg);
-  Serial.print(" deg\t");
 
-  Serial.print("Roll: ");
-  Serial.print(roll_deg);
-  Serial.println(" deg");
+  // ลองใช้ฟังก์ชันใหม่ที่ sync ได้ดีกว่า
+  if (readIMUHeadingSimple()) {  // <-- เปลี่ยนจาก readIMUHeading()
+    maintainHeading(0, 40);
+    printIMUData();
+  }
+  delay(50);
 
-  Serial.print("Accel X: ");
-  Serial.print(accelX_g);
-  Serial.print(" g\t");
+  // measure_tilt_and_accel();
+  // Serial.print("Pitch: ");
+  // Serial.print(pitch_deg);
+  // Serial.print(" deg\t");
 
-  Serial.print("Y: ");
-  Serial.print(accelY_g);
-  Serial.print(" g\t");
+  // Serial.print("Roll: ");
+  // Serial.print(roll_deg);
+  // Serial.println(" deg");
 
-  Serial.print("Z: ");
-  Serial.print(accelZ_g);
-  Serial.println(" g");
+  // Serial.print("Accel X: ");
+  // Serial.print(accelX_g);
+  // Serial.print(" g\t");
 
-  delay(100); 
+  // Serial.print("Y: ");
+  // Serial.print(accelY_g);
+  // Serial.print(" g\t");
+
+  // Serial.print("Z: ");
+  // Serial.print(accelZ_g);
+  // Serial.println(" g");
+
+  //delay(100); 
   //PID_wall(30, 2, 0, 0.5, 0);     // wall track
   // PID_Sensor(60,3,1.5,2.35);  // line track
 }

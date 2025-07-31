@@ -13,10 +13,10 @@ void PID_Sensor(int Speed, float Kp, float Ki, float Kd) {
 }
 
 void Motor(int sp1, int sp2, int sp3, int sp4) {
-  motor(1, sp1);
-  motor(2, sp2);
-  motor(3, sp3);
-  motor(4, sp4);
+  motor(1, sp1);//front_left
+  motor(2, sp2);//back_left
+  motor(3, sp3);//front_right
+  motor(4, sp4);//back_right
 }
 
 void Motor_Stop() {
