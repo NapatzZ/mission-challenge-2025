@@ -32,6 +32,8 @@ void setup() {
   beep(1000);
   setupIMU();
 
+  testDirectionalMovement();
+
   // esc.writeMicroseconds(2000);
   
 }
